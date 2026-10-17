@@ -1,0 +1,26 @@
+taxon,clade,class_group,AANAT_intact,ASMT_intact,MTNR1A_intact,MTNR1B_intact,gene_intact_all,source
+Hagfish (Eptatretus),Myxini,Agnatha,,,,,UNKNOWN,"AANAT is reported from Cyclostomata upward; hagfish genomes incomplete, so UNKNOWN not 0"
+Lamprey (Petromyzon),Hyperoartia,Agnatha,1,1,1,1,1,NOT VERIFIED
+Dogfish Shark (Squalus),Chondrichthyes,Fishes,1,1,1,1,1,NOT VERIFIED
+Zebrafish (Danio rerio),Actinopterygii,Fishes,1,1,1,1,1,"Coon et al. 1999 JBC 274:9076 (2 AANAT paralogs, both functional); intact=1"
+Salmon (Salmo salar),Actinopterygii,Fishes,1,1,1,1,1,"salmonid 4R gives ~5 copies, all functional; intact=1"
+Clawed Frog (Xenopus),Amphibia,Amphibians,1,1,1,1,1,NOT VERIFIED
+Tuatara (Sphenodon),Lepidosauria,Reptiles,1,1,1,1,1,NOT VERIFIED
+Green Anole (Anolis),Lepidosauria,Reptiles,1,1,1,1,1,NOT VERIFIED
+King Cobra (Ophiophagus),Lepidosauria,Reptiles,1,1,1,1,1,NOT VERIFIED
+Painted Turtle (Chrysemys),Testudines,Reptiles,1,1,1,1,1,NOT VERIFIED
+American Alligator (Alligator),Crocodylia,Reptiles,1,1,1,1,1,Emerling 2021: 'all 13 crocodylians investigated retain intact melatonin genes'
+Chicken (Gallus gallus),Aves,Birds,1,1,1,1,1,NOT VERIFIED
+House Sparrow (Passer),Aves,Birds,1,1,1,1,1,NOT VERIFIED
+Human (Homo sapiens),Primates,Mammals,1,1,1,1,1,Emerling 2021 notes MTNR1B pseudogene/deleted in 'five primates'; human not individually resolved
+Norway Rat (Rattus),Rodentia,Mammals,1,1,1,1,1,NOT VERIFIED
+Sheep (Ovis aries),Artiodactyla,Mammals,1,1,1,1,1,NOT VERIFIED
+Walrus (Odobenus),Pinnipedia,Mammals,1,1,1,1,1,CONTER-EXAMPLE: Emerling 2021 reports both receptors inactivated in a seal (Neomonachus schauinslandi); Odobenus not listed
+Naked Mole-Rat (Heterocephalus),Rodentia,Mammals,1,1,0,0,0,Emerling 2021: 'both melatonin receptor genes appear to be inactivated in ... a mole-rat (Heterocephalus glaber)'; synthesis intact
+Bottlenose Dolphin (Tursiops),Cetacea,Mammals,0,0,0,0,0,Huelsmann 2019: 'all three genes were lost in all analyzed cetaceans'
+Minke Whale (Balaenoptera),Cetacea,Mammals,0,0,0,0,0,Huelsmann 2019; Emerling 2021 (25 species)
+West Indian Manatee (Trichechus),Sirenia,Mammals,0,,0,0,UNKNOWN,"Emerling 2021: AANAT, MTNR1A, MTNR1B inactivated; ASMT heterozygous pseudogene -> UNKNOWN not 0"
+Chinese Pangolin (Manis),Pholidota,Mammals,0,0,0,0,0,"Emerling 2021: 'all pangolins' disrupted, shared inactivating mutations"
+Two-Toed Sloth (Choloepus),Xenarthra,Mammals,0,0,0,0,0,Emerling 2021: 'all xenarthrans' disrupted
+Nine-Banded Armadillo (Dasypus),Xenarthra,Mammals,0,0,0,0,0,Emerling 2021: 'all xenarthrans' disrupted
+Sunda Colugo (Galeopterus),Dermoptera,Mammals,0,0,0,0,0,Emerling 2021: 'complete disruption ... in two dermopteran (colugo) species'

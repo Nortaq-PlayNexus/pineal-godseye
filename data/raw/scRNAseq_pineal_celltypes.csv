@@ -1,0 +1,10 @@
+cell_type,major_lineage,fraction_of_total_cells,fraction_within_lineage,Asmt_rel_expr,OxPhos_rel_expr,Ribosomal_rel_expr,Gngt_rel_expr,night_DE_genes,day_DE_genes,source
+alpha-Pinealocyte,Pinealocyte,0.045000,0.050,3.4,2.3,0.122,0.185,,,Mays et al. 2018 PLoS ONE 13(10):e0205883 (PMC6197868); all fields quoted in source comments
+beta-Pinealocyte,Pinealocyte,0.855000,0.950,1.0,1.0,1.0,1.0,359,195,Mays et al. 2018 PLoS ONE 13(10):e0205883 (PMC6197868); night/day DE counts quoted verbatim
+alpha-Astrocyte,Astrocyte,0.059500,0.850,,,,,,,"Mays et al. 2018 PLoS ONE 13(10):e0205883 (PMC6197868); 85% of astrocytes, 7% of profiled cells"
+beta-Astrocyte,Astrocyte,0.004900,0.070,,,,,,,Mays et al. 2018 PLoS ONE 13(10):e0205883 (PMC6197868); 7% of astrocytes
+gamma-Astrocyte,Astrocyte,0.005600,0.080,,,,,,,Mays et al. 2018 PLoS ONE 13(10):e0205883 (PMC6197868); 8% of astrocytes
+alpha-Microglia,Microglia,0.006400,0.640,,,,,,,Mays et al. 2018 PLoS ONE 13(10):e0205883 (PMC6197868); 64% of microglia
+beta-Microglia,Microglia,0.003600,0.360,,,,,,,Mays et al. 2018 PLoS ONE 13(10):e0205883 (PMC6197868); 36% of microglia
+VLMC,Vascular/Leptomeningeal,0.020000,,,,,,,,Mays et al. 2018 PLoS ONE 13(10):e0205883 (PMC6197868); 2% of profiled cells
+Endothelial,Endothelial,0.001000,,,,,,,,Mays et al. 2018 PLoS ONE 13(10):e0205883 (PMC6197868); 0.1% of profiled cells
