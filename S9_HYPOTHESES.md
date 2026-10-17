@@ -1,168 +1,149 @@
-# Section 9 — Hypothesis register
+# Section 9 — Hypothesis register (REVISED 2026-10-18)
 
-Each hypothesis is scored for novelty status, falsifiability, and current
-support. **No hypothesis here is claimed as a discovery.** Most are explicitly
-labelled as known-but-under-tested or as synthesis, per the protocol's rule
-that novelty requires a targeted literature search, which I have not run for
-any of these to completion.
+> **H1 and H2 are RETIRED.** Both were withdrawn after independent adversarial
+> review found their evidence did not support them. This file now records the
+> retired hypotheses alongside the surviving one, because the failures are more
+> informative than the hypotheses were. See `AUDIT_2026-10-18.md`.
 
----
+## Summary
 
-## H1 — The alpha/beta pinealocyte division is a SAM-supply division, not a step-division
-
-**Claim.** alpha-pinealocytes exist to supply S-adenosylmethionine (SAM) to
-beta-pinealocytes, not to do a distinct enzymatic step. The 4.5%/95% split
-inverts the enzyme abundance you'd expect if each cell type ran its own
-complete pathway.
-
-**Motivating observations.** From the dataset: alpha = 4.5% of cells,
-5.0% of pinealocytes, but `Asmt_rel_expr` = 3.40 vs beta's 1.00, and
-`MAT2A_SAM_capacity` = 2.15 vs 1.00. Meanwhile beta has `Ribosomal_rel_expr`
-= 1.00 vs alpha's 0.122 — alpha cells are transcriptionally quiet, beta cells
-are not. Mays et al. 2018 report ASMT is enriched in alpha cells.
-
-**Reasoning.** If alpha cells were simply "more efficient at the last step,"
-you would expect them to be transcriptionally active. They are the *opposite* —
-0.122 ribosomal expression. A cell that is metabolically specialised but
-transcriptionally quiet looks more like a cofactor supplier than a factory.
-
-**Assumptions.** (a) `MAT2A_SAM_capacity` is a meaningful proxy for SAM supply;
-(b) the `rel_expr` values are comparable across cell types; (c) transcriptional
-quiescence implies a supply role.
-
-**Alternative explanations.** (a) Alpha cells may simply be more differentiated
-and therefore less transcriptionally active, with no SAM coupling at all.
-(b) The 4.5% fraction may reflect cell-cycle state or dissociation artefact.
-(c) The division may be an artefact of the clustering resolution in a single
-scRNAseq paper.
-
-**Predictions that would distinguish it.** If SAM coupling is real, then:
-- perturbing MAT2A should selectively reduce melatonin output while leaving
-  beta-cell AANAT activity unchanged;
-- SAM and NAS should show *spatial* coupling (alpha-adjacent beta cells
-  converting NAS preferentially) detectable by spatial transcriptomics.
-
-**Evidence to support.** SAM microdialysis showing local depletion around
-alpha cells; MAT2A knockdown reducing melatonin disproportionately to AANAT
-knockdown at matched NAS levels.
-
-**Evidence to falsify.** MAT2A knockdown with no effect on melatonin output;
-or spatial transcriptomics showing alpha and beta cells are randomly
-interleaved with no SAM gradient.
-
-**Practical test.** Spatial transcriptomics on pineal tissue (the dataset has
-no spatial dimension — scRNAseq discarded it). This is the single highest-value
-next experiment.
-
-**Novelty status.** Known but underexplored. The alpha/beta division is
-established; the *functional interpretation* as SAM supply is a synthesis of
-the dataset's own numbers, and I have NOT run a prior-art search for it.
-Treat as hypothesis, not discovery.
+| # | Hypothesis | Status | Basis |
+|---|---|---|---|
+| H1 | alpha/beta pinealocytes = SAM-supply division | **RETIRED** | Premise is prior art; direction inverted vs source; central datum unsourced |
+| H2 | Gene-loss order topology-constrained | **RETIRED** | Misreading of the cited paper, wrong in the direction that manufactures the claimed asymmetry |
+| H3 | USWS / melatonin-loss independence | **UNTESTED** | Data quarantined; design underpowered even when it existed |
+| H4 | Unsourced values cluster outside validation coverage | **SURVIVED** | Now the project's main finding |
 
 ---
 
-## H2 — Gene loss order is constrained by pathway topology, not by drift
+## H1 — RETIRED
 
-**Claim.** In the lineages that lost the melatonin pathway, the order of gene
-loss is not random. Receptor genes (MTNR1B, MTNR1A) are lost *before* synthesis
-genes (ASMT, AANAT) in every documented case, consistent with selection acting
-first on the signalling side.
+**Was:** alpha-pinealocytes supply S-adenosylmethionine (SAM) to beta-pinealocytes.
 
-**Motivating observations.** Emerling 2021: in cetaceans, MTNR1B is inactivated
-in the *stem* lineage, while ASMT and MTNR1A are inactivated *after* the
-odontocete/mysticete split. Huelsmann 2019 reports the same asymmetry. The
-dataset's phylogenetic pattern (all four genes lost together in 7 of 9 clades)
-hides this ordering entirely, because it is binary.
+**Why it died, three independent reasons:**
 
-**Reasoning.** Losing the receptor first disconnects the gland from its
-downstream effects while leaving the (energetically costly) synthesis machinery
-intact — a classic evolutionary sequence: stop paying for an output whose
-consumers are gone, then stop paying for production.
+1. **The premise is published prior art.** Mays et al. 2018 abstract, verbatim:
+   *"α-pinealocytes have transcriptomic differences that likely enhance melatonin
+   formation by increasing the availability of the Asmt cofactor
+   S-adenosylmethionine, resulting from increased production of a precursor of
+   S-adenosylmethionine, ATP."*
 
-**Assumptions.** (a) the inactivating mutations are genuinely ancestral, not
-convergent; (b) absence of relaxed selection in Emerling's dN/dS table means
-neutral loss rather than selective loss.
+2. **The distinguishing claim reverses the source.** Mays' Fig 7C moves
+   **NAS beta → alpha**: *"NAS that is not converted to melatonin in
+   β-pinealocytes enters the α-pinealocyte by passive diffusion through
+   membranes and gap junctions."* H1 claimed SAM flows alpha → beta. The
+   project's own dataset annotation said the same as Mays, and the H1 test
+   never read it.
 
-**Alternative explanations.** (a) Mutation rate differences between genes
-could produce apparent ordering without selection. (b) The orderings may be
-uncoincidentally similar and I have read a pattern into 4 lineages.
+3. **The central datum does not exist.** `MAT2A_SAM_capacity = 2.15`. The
+   string "MAT2A" occurs **zero times** in Mays et al. 2018 (verified against
+   PMC6197868 full text). Mays' actual mechanism is a flux argument —
+   OxPhos-derived ATP → SAM, *within* alpha — with no gene named.
 
-**Predictions.** If topology-constrained, receptor loss should also precede
-synthesis loss in the *other* independently-lost clades (Xenarthra, Sirenia,
-Pholidota) — not just cetaceans. If drift-driven, order should be uncorrelated
-with pathway position.
+Aggravating: the test grouped `MAT2A` (makes SAM) with `ASMT` (consumes SAM) as
+a single "SAM-supply axis." ASMT enrichment marks alpha as the SAM **sink**,
+which argues *against* H1. The test could not have failed on the transcriptional
+axis, and printed "PREDICTION UPHELD" in every draft.
 
-**Current status.** **TESTABLE NOW AND ALREADY PARTLY ANSWERED.** Emerling
-2021's own data is the test, and it reports the same stem-lineage-first pattern
-in sirenians as in cetaceans. This is therefore NOT a novel hypothesis — it is
-an existing empirical result I re-derived. Recording it as such is the point.
+**Deeper problem nobody had raised until the audit:** alpha cells are 19× rarer
+than beta but are credited with 2.15× the SAM capacity. A 5%-abundance
+population cannot provision a 19×-larger consumer at equal flux. H1's
+stoichiometry does not close.
 
-**Novelty status.** Established in the literature (Emerling 2021, Huelsmann
-2019). Recorded here because it is the one place where the dataset's binary
-encoding actively destroys real signal.
-
----
-
-## H3 — `unihemispheric_sleep` and melatonin loss are independent
-
-**Claim.** The association Huelsmann proposes does not hold in our data.
-Melatonin-pathway loss and unihemispheric sleep co-occur in cetaceans and
-sirenians, but unihemispheric sleep ALSO occurs in taxa with a fully intact
-pathway (birds, possibly crocodilians, possibly pinnipeds), so loss is
-neither necessary nor sufficient for the trait.
-
-**Current support.** Odds ratio 0.46, **Fisher two-sided p = 0.63** — not
-significant. n = 25. Phylogenetic independence ignored.
-
-**Why this matters even as a null.** A null at n = 25 with 7 events cannot
-distinguish "no association" from "association too small to detect." The
-honest statement is: **this dataset has no power to test the hypothesis either
-way.** That is itself the finding — the convenience sample is inadequate for the
-question, which is why U12/U9 remain open.
-
-**What would give it power.** Phylogenetic comparative analysis (e.g. Pagel's
-lambda-corrected logistic regression) across hundreds of species with genome
-data. Not feasible with 25 hand-selected taxa.
-
-**Novelty status.** This is not a hypothesis — it is a null result, recorded as
-such. It must not be presented as evidence against Huelsmann 2019.
+**Also unresolved:** alpha-pinealocytes are defined by low ribosomal content
+(8.2×) and high mitochondrial content (2.3×) — the classic low-quality/dying-cell
+signature in droplet scRNA-seq. Mays profiled only n=275 alpha cells and did not
+report per-cluster UMI distributions. **Whether alpha-pinealocytes are a real
+cell type or a technical artefact is untested by anyone.** GEO GSE115723 permits
+this check; nobody has run it.
 
 ---
 
-## H4 — The dataset's binary encoding conceals more than it reveals
+## H2 — RETIRED
 
-**Claim.** `vertebrate_pineal_phylogeny.csv` uses binary flags for what are
-multi-state or continuous properties, and this has twice produced wrong
-conclusions: (a) `AANAT_intact=2` (a paralog count in a binary flag), and
-(b) `unihemispheric_sleep` conflating eye-closure observation with EEG-confirmed
-hemispheric asymmetry.
+**Was:** receptor genes are lost before synthesis genes in melatonin-pathway
+losing lineages, consistent with selection acting first on the signalling side.
 
-**Why this is a hypothesis, not just a bug report.** If binary encoding is a
-recurring failure mode, the prediction is that OTHER datasets in this estate
-encode multi-state properties as binary and will fail the same way. That is a
-testable, general claim with a defined search: audit the flag columns across
-the project's datasets.
+**Why it died:** Emerling et al. 2021's actual stem-Cetacea pattern pairs a
+**synthesis** gene with a **receptor**:
 
-**Prediction.** At least one other dataset has a flag column mixing observation
-types (e.g. "observed" vs "measured" vs "inferred from related species").
+| gene | Emerling 2021 evidence | branch |
+|---|---|---|
+| AANAT | premature stop exon 1, all 25 species; dN/dS stem Cetacea **3.2** | **stem** |
+| MTNR1A | "a whole exon deletion occurred on the stem Cetacea branch" | **stem** |
+| ASMT | 1-bp insn exon 1, 21 spp., mysticetes + odontocetes | post-split |
+| MTNR1B | 1-bp del exon 2, 17 spp., mysticetes + odontocetes | post-split |
 
-**Status.** Partly confirmed within this project (3 of 3 audit rounds found an
-error). The cross-project extension is untested.
+There is **no receptor-before-synthesis asymmetry in cetaceans.** H2 was wrong
+in precisely the direction that manufactures the pattern it claimed to find.
 
-**Novelty status.** A synthesis of this project's own audit history. Not
-claimed as novel.
+The Sirenia "corroboration" was also absent from the source: the only *shared*
+inactivating mutation in sirenians is MTNR1B — the gene H2 called post-split in
+cetaceans. AANAT and MTNR1A inactivations are species-specific (manatee,
+dugong).
+
+Emerling's whole framing is relaxed selection toward omega ≈ 1 — drift, which is
+the alternative H2 positioned against, and which their dN/dS data supports.
+
+**The deeper error:** H2 asserted exactly the inference S8 U14 had already
+declared unobtainable (*"Comparative genomics can identify the loss, not the
+selection on it"*). S8 and S9 contradicted each other and nothing reconciled
+them. Emerling's Supplementary Tables S2–S5 contain per-species calls that could
+actually test H2. They were never opened.
 
 ---
 
-## Register summary
+## H3 — UNTESTED (not refuted)
 
-| # | Hypothesis | Status | Novelty | Falsifiable now? |
-|---|---|---|---|---|
-| H1 | alpha/beta = SAM supply division | Untested | Known but underexplored | Yes — spatial transcriptomics |
-| H2 | Loss order topology-constrained | **Already answered in literature** | Established | Already answered |
-| H3 | Sleep/loss independence | **NULL, underpowered** | Not a hypothesis | No — needs more taxa |
-| H4 | Binary encoding hides signal | Partly confirmed | Synthesis | Yes — cross-project audit |
+**Was:** the association between melatonin-pathway loss and unihemispheric sleep
+is absent.
 
-**Nothing in this register is a discovery.** H2 is an existing result re-derived;
-H3 is a null; H1 is the only genuinely open, testable hypothesis, and it needs
-spatial data the project does not have.
+**Now:** the `unihemispheric_sleep` column is **quarantined**, so the
+association cannot be computed from project data at all.
+
+Two independent reasons it was never going to work:
+
+1. **Power.** n=25, 7 events, actual test size 0.0267 (not 0.05). Minimum
+   detectable odds ratio at 80% power is **~27×**. A 2-fold effect is
+   undetectable in either direction.
+2. **The column mixes mammal and non-mammal architectures.** Melatonin-**duration**
+   reading is a mammalian readout rule that birds demonstrably do not use —
+   Juss et al. 1993, *Proc R Soc B* 254:21-28: *"unlike mammals, birds do not
+   read the duration of the melatonin signal to measure scotoperiod."* Averaging
+   chicken and hamster rows is averaging two different systems.
+
+**Correct statement:** the hypothesis is OPEN. The dataset could not test it in
+either direction. Huelsmann 2019 is neither supported nor refuted here.
+
+---
+
+## H4 — SURVIVED, and is now the project's main finding
+
+**Claim:** unsourced values in this project cluster systematically *outside*
+the coverage of any validation rule, and inside it wherever a constraint could
+be satisfied by fitting rather than by transcription.
+
+**Evidence:**
+
+| Finding | Location |
+|---|---|
+| Fractions fabricated to sum to exactly 1.000000 | scRNAseq, 7 rows |
+| `MAT2A` column and value unsourced | scRNAseq |
+| All 6 kinetics rows untraceable; 2 cited papers don't exist | kinetics |
+| 5 morphology columns derived from gene columns, not observed | phylogeny |
+| 2 free-text ecological columns with no source | phylogeny |
+| `pineal_organ=0` for alligator — flatly wrong | phylogeny |
+
+The pinealocyte block was transcribed correctly. Everything that could be
+*satisfied by constraint* was generated. The sum-to-one validator added on
+2026-10-17 passes every fabricated row. **The validator validated the
+fabrication.**
+
+**Prediction (untested):** if this pattern recurs, other projects that added
+schema validators to internally-consistent data will show the same failure. This
+project has no cross-project data, so the generalisation is unproven — and
+noting it as proven is the error this project has already made once.
+
+**Test that would settle it:** re-analyse a sibling project's data against its
+sources, checking specifically whether its validated columns are also its
+correct ones.

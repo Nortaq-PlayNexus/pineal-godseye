@@ -1,0 +1,11 @@
+origin,field,value,why_quarantined
+scRNAseq,MAT2A_SAM_capacity (all rows),1.00-2.15,'MAT2A' occurs 0 times in Mays et al. 2018 full text. Column and values unsourced.
+scRNAseq,fraction_of_total_cells (7 non-pinealocyte rows),see old CSV,"Did not match Mays 2018. Values were distributed to sum to 1.000000, which Mays' own reported percentages (sum 1.001) do not."
+scRNAseq,"Aanat_night_rel_expr, Tph1_rel_expr (all rows)",0.01-3.10,Not reported by Mays 2018. Mays explicitly REMOVED Aanat from analysis for non-pinealocytes due to ambient-mRNA contamination.
+scRNAseq,primary_role marker assertions,free text,Markers cited are not the markers Mays used (their astrocyte markers are Aldh1a1/S100b/Tnfrsf21; microglia Aif1/Lyz2).
+kinetics,"all 6 rows, all Km/Vmax/Ki",see old CSV,"0 of 6 rows verified. Chu et al. 2014 (PMC4025572, read in full) reports INMT Km 852+/-61 uM (rabbit) and 499+/-68 uM (human); '270' and '67' do not occur. Obsil 2001 is a crystal-structure paper. Liu & Borjigin refute the ASMT rate-limiting claim. 'Markus 2018' and 'Chen 2020' do not exist."
+phylogeny,nonvisual_opsins_count,0-5,Cited source (Romero & de Souza 2025) surveyed lepidosaurian genomes only.
+phylogeny,pineal_organ,0/1,"DERIVED from the gene columns, not observed. Wrong for alligator; cetaceans, sirenians, xenarthrans and pangolins all RETAIN pineal glands."
+phylogeny,"thermal_metabolic_regime, habitat_photoperiod",free text,No source of any kind.
+phylogeny,"parietal_eye, direct_photosensitive, intrinsic_oscillator",0/1,Unsourced.
+phylogeny,unihemispheric_sleep,0/1,"Hand-assigned literature flag, not a measurement. Walrus row rests on eye-closure in ONE captive animal (Pryaslova et al. 2009, not 2022); alligator row on unilateral eye CLOSURE (Kelly et al. 2015, a questioning paper)."

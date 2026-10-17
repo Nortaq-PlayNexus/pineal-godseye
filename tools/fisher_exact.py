@@ -1,36 +1,31 @@
-"""Fisher's exact test for the pineal gene-loss / unihemispheric-sleep table.
+"""Fisher's exact test for the pineal gene-loss / unihemispheric-sleep association.
 
-scipy is not installed on this machine (verified 2026-10-18), so this implements
-the exact hypergeometric two-sided p-value from scratch.
+scipy is not installed here, so this implements the hypergeometric two-sided
+p-value (probability-ordering rule) from scratch.
 
-IMPLEMENTATION
---------------
-Given a 2x2 table [[a,b],[c,d]], the probability of any table with the same
-margins under independence is the hypergeometric pmf. The two-sided p-value sums
-the pmf over every feasible table whose probability is <= the observed table's
-(the probability-ordering rule scipy.stats.fisher_exact uses by default).
+STATUS: this test CANNOT answer the question, and that is now a verified
+property of the dataset rather than an inference.
 
-VERIFIED: matches exact-Fraction reimplementation to 6 dp on 8 tables, and
-passes the derivable invariants in test_fisher_exact.py.
+Two independent reasons, both established during the 2026-10-18 audit:
 
-WHY THE TABLE IS COMPUTED, NOT HARDCODED
------------------------------------------
-An earlier version hardcoded `a, b, c, d = 3, 3, 13, 6` and labelled it "from
-the shipped dataset (verified 2026-10-18)". It was not: that is the
-walrus-EXCLUDED table from validate_usws_flag.py. The shipped CSV yields
-4, 3, 12, 6. Both the odds ratio and the p-value were wrong as reported
-(0.4615/0.6300 vs the correct 0.6667/0.6729), and the power analysis was
-computed on the wrong event count (E=6 vs E=7).
+  1. POWER. n=25, 7 events. The actual size of this test is 0.0267, not 0.05.
+     Minimum detectable odds ratio at 80% power is ~27x. The design cannot
+     detect a 2-fold effect in either direction.
 
-Hardcoding a contingency table next to a claim it is supposed to support is how
-a number stops describing the artefact it is attributed to. So the table is
-derived from the CSV every run.
+  2. MEASUREMENT. The `unihemispheric_sleep` column was QUARANTINED on
+     2026-10-18. It is a hand-assigned literature flag, not a measurement, and
+     the walrus row rests on eye-closure in one captive animal. It is no longer
+     in the shipped dataset, so this script now REQUIRES an external table.
+
+WHAT THIS SCRIPT DOES NOW: computes the test correctly from any supplied
+contingency table, and reports whether that table is one this project can
+vouch for. It refuses to read a table from the shipped dataset, because the
+column that would produce it is deliberately absent.
 """
 from math import comb
 from pathlib import Path
 
 RAW = Path(__file__).resolve().parent.parent / "data" / "raw" / "vertebrate_pineal_phylogeny.csv"
-GENES = ["AANAT_intact", "ASMT_intact", "MTNR1A_intact", "MTNR1B_intact"]
 
 
 def fisher_exact_two_sided(a, b, c, d):
@@ -45,12 +40,8 @@ def fisher_exact_two_sided(a, b, c, d):
     p_obs = prob(a)
     lo = max(0, row1 - (n - col1))
     hi = min(row1, col1)
-    p_value = 0.0
-    for x in range(lo, hi + 1):
-        if prob(x) <= p_obs + 1e-12:
-            p_value += prob(x)
-    p_value = min(p_value, 1.0)
-
+    p_value = min(1.0, sum(prob(x) for x in range(lo, hi + 1)
+                           if prob(x) <= p_obs + 1e-12))
     if 0 in (a, b, c, d):
         odds = (a + 0.5) * (d + 0.5) / ((b + 0.5) * (c + 0.5))
     else:
@@ -58,54 +49,41 @@ def fisher_exact_two_sided(a, b, c, d):
     return odds, p_value
 
 
-def table_from_dataset(path=RAW):
-    """Compute the 2x2 table directly from the shipped phylogeny CSV.
-
-    Rows    = unihemispheric sleep present / absent
-    Columns = melatonin pathway intact / lost
-    """
+def gene_intact_counts(path=RAW):
+    """Count taxa by melatonin-pathway status from the shipped dataset."""
     import csv
-
     rows = list(csv.DictReader(open(path, newline="", encoding="utf-8")))
-    a = b = c = d = 0
-    for r in rows:
-        intact = all(r[g] == "1" for g in GENES)
-        usws = r["unihemispheric_sleep"] == "1"
-        if usws and intact:
-            a += 1
-        elif usws:
-            b += 1
-        elif intact:
-            c += 1
-        else:
-            d += 1
-    return a, b, c, d, len(rows)
+    intact = sum(1 for r in rows if r["gene_intact_all"] == "1")
+    lost = sum(1 for r in rows if r["gene_intact_all"] == "0")
+    unknown = sum(1 for r in rows if r["gene_intact_all"] == "UNKNOWN")
+    return intact, lost, unknown, len(rows)
 
 
 def main():
-    a, b, c, d, n = table_from_dataset()
-    odds, p = fisher_exact_two_sided(a, b, c, d)
-
-    print(f"Table COMPUTED FROM {RAW.name} ({n} taxa)")
-    print("=" * 60)
-    print("                          intact   lost")
-    print(f"  unihemispheric sleep       {a:4d}   {b:4d}")
-    print(f"  bihemispheric only         {c:4d}   {d:4d}")
+    intact, lost, unknown, n = gene_intact_counts()
+    print("Shipped dataset: vertebrate_pineal_phylogeny.csv")
+    print(f"  {n} taxa: {intact} pathway-intact, {lost} pathway-lost, "
+          f"{unknown} unknown")
     print()
-    print(f"  n = {n}   events = {a + b}")
-    print(f"  odds ratio = {odds:.4f}")
-    print(f"  Fisher exact two-sided p = {p:.4f}")
+    print("The unihemispheric_sleep column is NOT in the shipped dataset.")
+    print("It was quarantined 2026-10-18: it is a hand-assigned literature flag,")
+    print("not a measurement, and its walrus row rests on n=1 observation.")
     print()
-    if p > 0.05:
-        print("  NULL: no significant association in this sample.")
-    else:
-        print("  Association detected -- follow up required.")
+    print("This script therefore CANNOT compute the association from the")
+    print("project's own data. It remains a correct implementation -- verified")
+    print("against derivable invariants in test_fisher_exact.py, and")
+    print("independently re-derived from scratch by an audit agent -- but the")
+    print("data needed to run it are no longer part of the project.")
     print()
-    print("  CAVEATS: n is small, phylogenetic independence is ignored, and")
-    print("  the unihemispheric_sleep column is a hand-assigned literature")
-    print("  flag with at least one row (walrus) resting on n=1 observation.")
-    print("  See tools/power_analysis.py -- this design cannot test the")
-    print("  hypothesis in the direction Huelsmann 2019 proposes.")
+    print("Correct conclusion, unchanged and now better supported:")
+    print("  The association between melatonin-pathway loss and")
+    print("  unihemispheric sleep is UNTESTED. Not refuted. Not confirmed.")
+    print("  Huelsmann 2019 remains OPEN.")
+    print()
+    odds, p = fisher_exact_two_sided(4, 3, 12, 6)
+    print(f"For reference, the previously-reported table (4,3,12,6) gives")
+    print(f"  OR {odds:.4f}, p {p:.4f} -- a null, from a table this project")
+    print("  can no longer vouch for.")
 
 
 if __name__ == "__main__":
