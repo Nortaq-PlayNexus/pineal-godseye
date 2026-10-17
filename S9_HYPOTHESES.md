@@ -13,6 +13,44 @@
 | H2 | Gene-loss order topology-constrained | **RETIRED** | Misreading of the cited paper, wrong in the direction that manufactures the claimed asymmetry |
 | H3 | USWS / melatonin-loss independence | **UNTESTED** | Data quarantined; design underpowered even when it existed |
 | H4 | Unsourced values cluster outside validation coverage | **SURVIVED** | Now the project's main finding |
+| H5 | **The alpha/beta division is a real, functionally distinct population** | **SUPPORTED** | Three independent lines from primary GEO data |
+
+## H5 — SUPPORTED (added 2026-10-18)
+
+This is the project's first positive result, and it was reached by attacking
+the cell type rather than by building on it.
+
+**Claim.** Alpha-pinealocytes are a genuine pinealocyte population that differs
+from beta-pinealocytes in identity, library complexity, and drug response.
+
+**Evidence, all from GEO GSE115723 primary count matrices:**
+
+1. **Not a droplet artefact.** Alpha cells are the deepest-sequenced cells in
+   the tissue (1.47× Day1, 1.54× Night1) with lower ribosomal *and* lower
+   mitochondrial fraction. The artefact hypothesis predicts the opposite. The
+   ordering check is decisive: Asmt-LOW cells, which are far shallower, have a
+   worse ribosomal fraction (12.73%) than Asmt-high cells (7.82%).
+2. **Genuine identity.** Elevated for 7/9 (Day1) and 8/9 (Night1) markers not
+   used to define the set. `Sag` at 65.6× and 35.8× is decisive.
+3. **Functionally distinct.** 33 genes differ in adrenergic response between
+   alpha and beta at BH q<0.05, against ~699 expected by chance. Strongest:
+   `Drd4` (alpha +7.11 vs beta +2.72, q = 5.8e-08).
+
+**Pipeline validated against the source.** `Aanat` induction (alpha
+0.55 -> 27.90 CP10K), `Crem`, `Drd4`, `Pde10a` all reproduce Mays et al.
+2018's reported isoproterenol response, confirming this code reads the GEO
+data correctly.
+
+**Correction attached to this finding.** Alpha cells are routinely called
+"transcriptionally quiet." They are not — they carry MORE absolute ribosomal
+counts than any other pinealocyte (1,245 vs 1,076 Day1; 1,038 vs 761 Night1).
+The description is true only as a relative share of a larger transcriptome.
+Reading it as absolute inverts the biology and may be how a cofactor-supply
+story got attached to these cells.
+
+**Scope.** H5 says the division is real and functional. It says nothing about
+the mechanism. H1 was the wrong answer to a real question, and the question is
+still open. Full detail in `ALPHA_BETA_FINDINGS.md`.
 
 ---
 
@@ -147,3 +185,21 @@ noting it as proven is the error this project has already made once.
 **Test that would settle it:** re-analyse a sibling project's data against its
 sources, checking specifically whether its validated columns are also its
 correct ones.
+
+**Update, 2026-10-18 — partial support.** The audit did what it could to test
+this on the primary data, and the pattern held. Of the GSE115723 alpha-pinealocyte
+parameters: `Asmt` 3.4x, `OxPhos` 2.3x, ribosomal 1/8.2 = 0.122 and
+`Gngt1` 1/5.4 = 0.185 are all **verified against Mays 2018**, because they were
+read off the paper. `MAT2A_SAM_capacity` was **not**, because it was not. Both
+categories sit in the same file, in the same column block, with the same
+validator. Verified values and fabricated values were indistinguishable to every
+check the project had at the time.
+
+The distinguishing feature is now clear: **a value read from a source has a
+receipt; a value generated to fit a constraint does not.** The fix is per-cell
+provenance, not more validators. That is now implemented — every shipped row
+carries a source string, and the build refuses rows without one.
+
+**Still untested:** whether this pattern recurs in a sibling project. Four
+agents found defects here that four prior audit passes missed; nobody has
+looked at another project. That remains the open half of H4.
