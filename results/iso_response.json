@@ -1,0 +1,15 @@
+{
+  "design": "unpaired, different animals",
+  "shared_barcodes": 5,
+  "alpha_cells": {
+    "vehicle": 73,
+    "iso": 96
+  },
+  "beta_cells": {
+    "vehicle": 1396,
+    "iso": 1819
+  },
+  "n_genes_tested": 13984,
+  "n_subtype_specific_q05": 33,
+  "expected_by_chance": 699
+}
