@@ -24,9 +24,13 @@ its nominal alpha suggests.
 Pure stdlib; scipy is not installed on this machine.
 """
 from math import comb
-from fisher_exact import fisher_exact_two_sided
+from fisher_exact import fisher_exact_two_sided, table_from_dataset
 
-NI, NL, E = 16, 9, 6  # intact, lost, total events
+# CORRECTION 2026-10-18: these were hardcoded as NI, NL, E = 16, 9, 6. That was
+# the walrus-EXCLUDED table, not the shipped dataset, which has 7 USWS rows.
+# Derive them from the CSV instead.
+_a, _b, _c, _d, N_TAXA = table_from_dataset()
+NI, NL, E = _a + _c, _b + _d, _a + _b
 
 
 def split_table(x):
@@ -60,7 +64,9 @@ def power_at(theta, alpha):
 
 
 def main():
-    print(f"Design: {NI} intact / {NL} lost, {E} events. Fisher two-sided.")
+    print(f"Design derived from vertebrate_pineal_phylogeny.csv:")
+    print(f"  {NI} melatonin-intact / {NL} melatonin-lost, {E} USWS events, "
+          f"{N_TAXA} taxa. Fisher two-sided.")
     print()
 
     # Actual size of the test (must equal alpha if calibrated).
@@ -87,61 +93,52 @@ def main():
     # and theta>1 pushes probability AWAY from those (toward x=6, p=0.057).
     # So this test detects a protective effect (theta<1) but has almost no
     # power to detect an elevated risk (theta>1) at these margins.
-    print("Why power DECREASES with the odds ratio (this is correct, not a bug)")
-    print("-" * 62)
-    print("  Only splits x=0 and x=1 reject at alpha=0.05. A true OR > 1")
-    print("  shifts probability toward higher x, and the extreme high split")
-    print("  x=6 gives p=0.057 -- which still fails to reject. The test can")
-    print("  detect a PROTECTIVE effect but has near-zero power for an")
-    print("  ELEVATED one at these margins. Verified: the H1 weighting")
-    print("  reproduces the H0 pmf exactly at theta=1.")
-    print()
-
-    # Power in the protective direction (theta < 1), which is where the
-    # observed OR of 0.46 actually sits.
-    print("Power in the PROTECTIVE direction (OR < 1), where OR=0.46 sits:")
+    print("Power in the PROTECTIVE direction (OR < 1):")
     print(f"  {'true OR':>9}  {'power':>7}")
     print("  " + "-" * 20)
-    for theta in [1.0, 0.8, 0.6, 0.46, 0.3, 0.2, 0.1, 0.05]:
+    for theta in [1.0, 0.8, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]:
         print(f"  {theta:9.2f}  {power_at(theta, 0.05):7.3f}")
     print()
 
-    # Minimum detectable PROTECTIVE OR at 80% power.
-    target = 0.80
-    lo, hi = 1.0, 0.001
-    for _ in range(60):
-        mid = (lo + hi) / 2
-        if power_at(mid, 0.05) < target:
-            lo = mid
-        else:
-            hi = mid
-    print(f"Minimum detectable PROTECTIVE OR at 80% power: ~{lo:.2f}")
-    print(f"Minimum detectable ELEVATED OR at 80% power: >500 (unreachable)")
+    # Minimum detectable OR at 80% power, each direction.
+    def min_or(target, lo, hi, rising):
+        for _ in range(60):
+            mid = (lo + hi) / 2
+            below = power_at(mid, 0.05) < target
+            if (below and rising) or (not below and not rising):
+                lo = mid
+            else:
+                hi = mid
+        return hi
+
+    print(f"Minimum detectable ELEVATED OR at 80% power: "
+          f"~{min_or(0.80, 1.0, 500.0, True):.1f}")
+    print(f"Minimum detectable PROTECTIVE OR at 80% power: "
+          f"~{min_or(0.80, 1.0, 0.001, False):.2f}")
     print()
     print("INTERPRETATION")
     print("-" * 62)
-    print("With 6 events in 25 taxa this design is severely underpowered, and")
-    print("asymmetrically so: it can detect a protective effect (OR ~0.05 at")
-    print("80% power) but essentially nothing in the elevated direction")
-    print("(OR > 500 required, unreachable).")
+    print(f"With {E} events in {N_TAXA} taxa this design is underpowered, and")
+    print("its true size is 0.0267 rather than the nominal 0.05 because the")
+    print("probability-ordering rule gives a disconnected rejection region")
+    print(f"{{x in {rejects}}} on a table this small.")
     print()
-    print("The observed OR of 0.46 sits in the NEAR-BLIND SPOT: it is")
-    print("protective enough that the test trends toward significance")
-    print("(power ~0.08 at the observed effect) but nowhere near enough to")
-    print("reject. p = 0.63 is therefore genuinely uninformative in BOTH")
-    print("directions -- neither support nor refutation.")
+    print("The observed OR of 0.6667 sits far inside the blind spot: even a")
+    print("true 2-fold elevation would go undetected (power ~0.10), and a")
+    print("2-fold protective effect likewise (~0.15). Reaching 80% power")
+    print("needs roughly a 30-fold effect. p = 0.6729 is therefore")
+    print("uninformative in both directions.")
     print()
-    print("What the observed split does tell us is worth stating precisely:")
-    print("x=3 of 6 events in the intact group is the split with the HIGHEST")
-    print("p-value in the entire design (p=0.63 vs a maximum of 1.0). The")
-    print("data are as close to 'no association' as this sample could")
-    print("possibly show. That is weak evidence AGAINST a strong protective")
-    print("effect, and no evidence either way about Huelsmann's claim.")
+    print("Note the corrected power curve is now MONOTONE INCREASING with")
+    print("the odds ratio. The earlier version was decreasing because it")
+    print("used the wrong event count (E=6, the walrus-excluded table).")
     print()
     print("Correct statement: this dataset CANNOT test Huelsmann 2019 in")
     print("the direction it proposes. The hypothesis remains OPEN, not")
-    print("refuted. Testing it properly needs phylogenetic comparative")
-    print("analysis across hundreds of species, not 25 hand-picked taxa.")
+    print("refuted. A second reason it could not: the table mixes mammals")
+    print("and non-mammals, but melatonin-DURATION reading is a mammalian")
+    print("readout rule that birds demonstrably do not use (Juss et al. 1993")
+    print("Proc R Soc B 254:21-28). See S6_CROSS_DOMAIN.md.")
 
 
 if __name__ == "__main__":
