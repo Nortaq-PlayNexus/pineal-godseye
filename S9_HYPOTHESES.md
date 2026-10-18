@@ -12,7 +12,7 @@
 | H1 | alpha/beta pinealocytes = SAM-supply division | **RETIRED** | Premise is prior art; direction inverted vs source; central datum unsourced |
 | H2 | Gene-loss order topology-constrained | **RETIRED** | Misreading of the cited paper, wrong in the direction that manufactures the claimed asymmetry |
 | H3 | USWS / melatonin-loss independence | **UNTESTED** | Data quarantined; design underpowered even when it existed |
-| H4 | Unsourced values cluster outside validation coverage | **SURVIVED** | Now the project's main finding |
+| H4 | Unsourced values cluster outside validation coverage | **PARTIALLY SUPPORTED** | See correction below — downgraded 2026-10-18 after adversarial testing of my own validator |
 | H5 | **The alpha/beta division is a real, functionally distinct population** | **SUPPORTED** | Three independent lines from primary GEO data |
 
 ## H5 — SUPPORTED (added 2026-10-18)
@@ -185,6 +185,55 @@ noting it as proven is the error this project has already made once.
 **Test that would settle it:** re-analyse a sibling project's data against its
 sources, checking specifically whether its validated columns are also its
 correct ones.
+
+### CORRECTION 2026-10-18 — H4 downgraded after adversarial testing
+
+The cross-project test (commit `6a72ff7`) and an adversarial test of this
+project's own validator (`tools/test_provenance_adversarial.py`) together
+downgrade H4. Full audit: `AUDIT_H4_VERIFICATION_2026-10-18.md`.
+
+**What I originally claimed, and why it was too strong:**
+
+1. *"Provenance architecture explains why the projects differ in their
+   resistance to fabricated values."* — The Phase 3 result refutes this for
+   this project. Every shipped row now carries a source string, and the
+   validator still cannot detect:
+   - a fabricated but well-formed citation
+   - a citation to a nonexistent file
+   - a value that contradicts its source (test 5c: set crocodylian
+     `AANAT_intact=0` against Emerling 2021 and recompute the derived column —
+     it passes)
+
+   The validator is **syntactic**. It checks that a citation is present and
+   non-blank. It never resolves a citation and never compares a value to its
+   source.
+
+2. *"The pattern does not recur in the comparison projects."* — Coverage was
+   2 catalogued files of 22,679 under `data/`, and the high-risk category
+   (hand-entered reference constants) was not audited. Two problems were found
+   in the comparison project itself: `verified=True` is a hardcoded literal
+   (never computed), and `bytes_expected`/`bytes_actual` are tautological on
+   the genome path.
+
+**Corrected status:**
+
+- **H4a** (pattern does not recur) — **INCONCLUSIVE**. "No instance found in
+  the material inspected" is all that was established.
+- **H4b** (architecture explains the difference) — **PARTIALLY SUPPORTED**.
+  The observable part holds: a value originating as a digest of real bytes has
+  a receipt that fitting cannot reproduce; a hand-typed value does not. The
+  causal claim does not: three projects differ in four ways at once, and
+  recording provenance is demonstrably not the same as verifying it.
+
+**What survives, and is now the project's transferable finding:** a validator
+that tests internal consistency cannot distinguish a transcribed value from a
+well-fitted fabrication, because satisfying the constraint is exactly how the
+fabrication was built. That claim was tested directly (case 5c) and holds.
+
+**What does not survive:** any suggestion that adding provenance fields gives a
+project resistance to fabricated data. It gives traceability. Verification
+requires resolving each citation and comparing the value to the source — a
+step this build does not perform.
 
 **Update, 2026-10-18 — partial support.** The audit did what it could to test
 this on the primary data, and the pattern held. Of the GSE115723 alpha-pinealocyte
