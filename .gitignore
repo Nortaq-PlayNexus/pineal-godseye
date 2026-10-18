@@ -2,3 +2,4 @@
 data/geo/
 __pycache__/
 *.pyc
+.gitmsg
