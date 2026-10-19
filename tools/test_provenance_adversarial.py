@@ -1,22 +1,28 @@
-"""PHASE 3, corrected: is each attack caught by SOURCE CHECKING or by
-INTERNAL CONSISTENCY?
+"""Adversarial tests of pineal-godseye's per-cell provenance enforcement.
 
-The first run of test_provenance_adversarial.py reported attacks 5, 6 and 7 as
-CAUGHT. That verdict was right; the accompanying explanation was wrong. They
-were caught by `gene_intact_all disagrees` -- an INTERNAL CONSISTENCY check
-between a column and its derived column. That is the exact mechanism that let
-the original fabrication through: a constraint satisfied by fitting.
+Runs the 7 attacks named in the verification brief and classifies WHICH check
+fires for each: SOURCE_CHECK, INTERNAL_CHECK, or NOT_CAUGHT.
 
-This file re-runs each attack and reports WHICH check fired, so the
-distinction the brief asks for is explicit:
+HARNESS CORRECTIONS (2026-10-19, second audit pass)
+---------------------------------------------------
+The first version of this harness used naive `line.split(",")` to edit rows.
+That is wrong for two independent reasons, both confirmed by execution:
 
-  SOURCE CHECK      the validator inspected the citation
-  INTERNAL CHECK    the validator compared two values against each other
-  NOT CAUGHT        nothing fired
+1. **The shipped CSV is unquoted.** Sources contain commas
+   ("Emerling 2021: 'all 13 crocodylians ...'"), so a naive split produces more
+   fields than the header and `csv.DictReader` mis-assigns columns. Verified:
+   `csv.reader` and `split(",")` disagree on affected rows.
+2. **The row selector `ln.startswith(taxon)` matched only the first line**, so
+   `parsed[0]` was HAGFISH, not the alligator. A verification harness that
+   silently reads the wrong row is worse than no harness.
 
-The control is attack 5 with the derived column recomputed, so that internal
-consistency holds. If the attack is then NOT caught, the honest conclusion is
-that no source checking exists at all.
+This version round-trips through the csv module for BOTH reading and writing,
+and selects rows by parsed `taxon` field. The canonical CSV is never modified;
+every attack is applied to an in-memory copy.
+
+CONTROL: case 5c is the decisive one. It applies a source-contradicting change
+AND recomputes the derived column, so internal consistency holds. If that
+passes, no evidence verification is occurring.
 """
 import csv
 import io
@@ -27,87 +33,119 @@ RAW = PROJECT / "data" / "raw" / "vertebrate_pineal_phylogeny.csv"
 GENES = ["AANAT_intact", "ASMT_intact", "MTNR1A_intact", "MTNR1B_intact"]
 
 
+def _assert_columns_known():
+    """Guard against a mistyped column name silently degrading every check.
+
+    A near-miss typo like 'MTNR1B_intain'[:7] yields a name absent from the
+    CSV; DictReader then returns None for it, (None or '') becomes '', and
+    every 'is the flag domain valid' test silently passes. The control in
+    main() would go red, but only by accident -- and a red control is easy to
+    misread as 'the shipped data is bad' rather than 'the harness is wrong'.
+    Fail loudly at import time instead.
+    """
+    if not RAW.exists():
+        return
+    fields = set(next(csv.reader(io.StringIO(RAW.read_text(encoding="utf-8")))))
+    unknown = [g for g in GENES if g not in fields]
+    if unknown:
+        raise AssertionError(
+            f"GENES contains column name(s) absent from the CSV: {unknown}. "
+            f"Available: {sorted(fields)}")
+
+
+_assert_columns_known()
+
+
+def load(text):
+    return list(csv.DictReader(io.StringIO(text)))
+
+
+def serialise(rows, fields):
+    buf = io.StringIO()
+    w = csv.DictWriter(buf, fieldnames=fields, lineterminator="\n")
+    w.writeheader()
+    w.writerows(rows)
+    return buf.getvalue()
+
+
 def classify(rows):
-    """Return the set of violation kinds the validator raises."""
+    """Every condition that can mark a case caught, classified."""
     kinds = set()
     for r in rows:
         if not (r.get("source") or "").strip():
-            kinds.add("SOURCE_CHECK")
+            kinds.add("SOURCE_CHECK")          # citation present and non-blank
         vals = [(r.get(c) or "") for c in GENES]
         for c, v in zip(GENES, vals):
             if v not in ("", "0", "1"):
-                kinds.add("INTERNAL_CHECK")
+                kinds.add("INTERNAL_CHECK")    # flag domain
         expected = ("UNKNOWN" if any(v == "" for v in vals)
                     else "1" if all(v == "1" for v in vals) else "0")
         if (r.get("gene_intact_all") or "") != expected:
-            kinds.add("INTERNAL_CHECK")
+            kinds.add("INTERNAL_CHECK")        # derived column agreement
     return kinds
 
 
-def load(t):
-    return list(csv.DictReader(io.StringIO(t)))
-
-
-def edit(clean, taxon, col=None, value=None, src=None):
-    hdr = clean.splitlines()[0].split(",")
-    out = []
-    for ln in clean.splitlines():
-        if ln.startswith(taxon):
-            p = ln.split(",")
-            if col:
-                p[hdr.index(col)] = value
-            if src is not None:
-                p[-1] = src
-            ln = ",".join(p)
-        out.append(ln)
-    return "\n".join(out) + "\n"
-
-
-def redrive(clean, taxon):
-    """Recompute gene_intact_all so internal consistency HOLDS."""
-    t = edit(clean, taxon, col="AANAT_intact", value="0")
-    rows = load(t)
-    hdr = t.splitlines()[0].split(",")
-    gi = hdr.index("gene_intact_all")
-    lines = t.splitlines()
-    for i, ln in enumerate(lines):
-        if ln.startswith(taxon):
-            p = ln.split(",")
-            vals = [(p[hdr.index(c)] or "") for c in GENES]
-            p[gi] = ("UNKNOWN" if any(v == "" for v in vals)
-                     else "1" if all(v == "1" for v in vals) else "0")
-            lines[i] = ",".join(p)
-    return "\n".join(lines) + "\n"
+def attack(clean, taxon, col=None, value=None, src=None, redrive=False):
+    """Apply one mutation to an in-memory copy, via the csv module."""
+    rows = load(clean)
+    fields = list(rows[0].keys())
+    hit = 0
+    for r in rows:
+        if (r.get("taxon") or "").strip() != taxon:
+            continue
+        hit += 1
+        if col:
+            r[col] = value
+        if src is not None:
+            r["source"] = src
+        if redrive:
+            vals = [(r.get(c) or "") for c in GENES]
+            r["gene_intact_all"] = ("UNKNOWN" if any(v == "" for v in vals)
+                                    else "1" if all(v == "1" for v in vals)
+                                    else "0")
+    assert hit == 1, f"row selector matched {hit} rows for {taxon!r}, expected 1"
+    return serialise(rows, fields)
 
 
 def main():
     clean = RAW.read_text(encoding="utf-8")
-    print("PHASE 3 (corrected) -- which check actually fires?\n")
-    print(f"[control] shipped CSV -> {classify(load(clean)) or 'clean'}\n")
 
+    # sanity: the harness reads what it thinks it reads
+    base = load(clean)
+    assert len(base) == 25, f"expected 25 rows, parsed {len(base)}"
+    alig = [r for r in base
+            if r["taxon"].strip() == "American Alligator (Alligator)"]
+    assert len(alig) == 1, "alligator row not uniquely selectable"
+    assert alig[0]["AANAT_intact"] == "1", "baseline alligator AANAT_intact != 1"
+    assert alig[0]["gene_intact_all"] == "1", "baseline gene_intact_all != 1"
+
+    print("ADVERSARIAL PROVENANCE TESTS (harness round-trips through csv)\n")
+    print(f"[control] shipped CSV -> {classify(base) or 'clean'}")
+    print(f"[control] alligator baseline: AANAT_intact="
+          f"{alig[0]['AANAT_intact']} gene_intact_all={alig[0]['gene_intact_all']} "
+          f"source={alig[0]['source'][:48]}...\n")
+
+    AL = "American Alligator (Alligator)"
+    SAL = "Salmon (Salmo salar)"
     cases = [
-        ("1. source deleted", edit(clean, "American Alligator (Alligator)", src="")),
-        ("2. whitespace-only source",
-         edit(clean, "American Alligator (Alligator)", src="   ")),
+        ("1. source deleted", attack(clean, AL, src="")),
+        ("2. whitespace-only source", attack(clean, AL, src="   ")),
         ("3. fabricated well-formed citation",
-         edit(clean, "American Alligator (Alligator)",
-              src="Smith et al. 2019 Nature 574:312-318")),
+         attack(clean, AL, src="Smith et al. 2019 Nature 574:312-318")),
         ("4. citation to nonexistent file",
-         edit(clean, "American Alligator (Alligator)",
-              src="see /nonexistent/table_99.csv row 4")),
+         attack(clean, AL, src="see /nonexistent/table_99.csv row 4")),
         ("5. value contradicts a REAL source",
-         edit(clean, "American Alligator (Alligator)",
-              col="AANAT_intact", value="0")),
-        ("5c. same, but derived column recomputed (internal consistency HOLDS)",
-         redrive(clean, "American Alligator (Alligator)")),
+         attack(clean, AL, col="AANAT_intact", value="0")),
+        ("5c. same, gene_intact_all recomputed (internal consistency HOLDS)",
+         attack(clean, AL, col="AANAT_intact", value="0", redrive=True)),
         ("6. value modified, source unchanged",
-         edit(clean, "American Alligator (Alligator)",
-              col="MTNR1B_intact", value="0")),
+         attack(clean, AL, col="MTNR1B_intact", value="0")),
         ("7. value AND source changed consistently",
-         edit(edit(clean, "American Alligator (Alligator)",
-                   col="AANAT_intact", value="0"),
-              "American Alligator (Alligator)",
-              src="Emerling 2019 Sci Adv: crocodylians lost AANAT")),
+         attack(clean, AL, col="AANAT_intact", value="0",
+                src="Emerling 2019 Sci Adv: crocodylians lost AANAT")),
+        ("8. source containing commas (round-trip check)",
+         attack(clean, SAL, col="ASMT_intact", value="0",
+                src="Foo, A. 2020, J. Test 1:1, 'quoted, with comma'")),
     ]
 
     by_source = by_internal = missed = 0
@@ -116,8 +154,7 @@ def main():
         if not kinds:
             missed += 1
             print(f"[NOT CAUGHT]  {name}")
-            continue
-        if "SOURCE_CHECK" in kinds:
+        elif "SOURCE_CHECK" in kinds:
             by_source += 1
             print(f"[CAUGHT: source]  {name}")
         else:
@@ -125,27 +162,25 @@ def main():
             print(f"[CAUGHT: internal only]  {name}")
 
     print()
-    print("=" * 68)
-    print(f"caught by SOURCE check       : {by_source}")
-    print(f"caught by INTERNAL check only: {by_internal}")
-    print(f"not caught at all            : {missed}")
+    print("=" * 70)
+    print(f"caught by SOURCE check        : {by_source}")
+    print(f"caught by INTERNAL check only : {by_internal}")
+    print(f"not caught at all             : {missed}")
     print()
-    print("CONCLUSION")
-    print("-" * 68)
-    print("The only attack the SOURCE check catches is a MISSING or BLANK")
-    print("citation. Every substantive attack -- fabricated citation, dangling")
-    print("citation, value contradicting its source -- passes when internal")
-    print("consistency is allowed to hold (case 5c).")
+    print("VERDICT")
+    print("-" * 70)
+    print("Test 7: INTERNAL CHECK ONLY.")
+    print("The validator never opens a URL, resolves a DOI, reads a source file,")
+    print("or compares any value against cited evidence. It performs")
+    print("CITATION-PRESENCE checking plus INTERNAL dataset consistency.")
     print()
-    print("'Per-cell provenance enforcement' is therefore accurate ONLY as:")
-    print("    'no shipped cell lacks a source string'")
-    print("It is NOT evidence verification. The validator never resolves a")
-    print("citation or compares a value to its source.")
+    print("Case 5c is decisive: a value contradicting Emerling 2021 passes once")
+    print("gene_intact_all is recomputed. Case 8 confirms the harness now")
+    print("survives a citation containing commas and quotes.")
     print()
-    print("Note case 5: it appeared 'caught' in the first run, but only because")
-    print("the derived column had not been updated. That is an internal")
-    print("consistency check -- the same class of constraint that the original")
-    print("fabricated rows were built to satisfy.")
+    print("A validator testing internal consistency cannot distinguish a")
+    print("transcribed value from a well-fitted fabrication, because")
+    print("satisfying the constraint is how the fabrication was built.")
 
 
 if __name__ == "__main__":
