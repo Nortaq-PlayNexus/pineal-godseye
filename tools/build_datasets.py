@@ -148,7 +148,13 @@ PHYLO = [
     ("King Cobra (Ophiophagus)", "Lepidosauria", "Reptiles", 1, 1, 1, 1, "NOT VERIFIED"),
     ("Painted Turtle (Chrysemys)", "Testudines", "Reptiles", 1, 1, 1, 1, "NOT VERIFIED"),
     ("American Alligator (Alligator)", "Crocodylia", "Reptiles", 1, 1, 1, 1,
-     "Emerling 2021: 'all 13 crocodylians investigated retain intact melatonin genes'"),
+     # 2026-10-19: the previous string quoted 'all 13 crocodylians
+     # investigated retain intact melatonin genes', which does NOT occur in
+     # any retrievable text for this DOI (tools/check_quotes_against_source.py).
+     # Replaced with a phrase confirmed VERBATIM against the retrieved abstract.
+     # The recorded value (all four intact) is unchanged and still supported.
+     "Emerling 2021 Open Res Europe 1:75, doi:10.12688/openreseurope.13795.2 "
+     "Abstract: 'crocodylians retain intact melatonin genes'"),
     ("Chicken (Gallus gallus)", "Aves", "Birds", 1, 1, 1, 1, "NOT VERIFIED"),
     ("House Sparrow (Passer)", "Aves", "Birds", 1, 1, 1, 1, "NOT VERIFIED"),
     ("Human (Homo sapiens)", "Primates", "Mammals", 1, 1, 1, 1,
@@ -165,14 +171,26 @@ PHYLO = [
      "Huelsmann 2019; Emerling 2021 (25 species)"),
     ("West Indian Manatee (Trichechus)", "Sirenia", "Mammals", 0, None, 0, 0,
      "Emerling 2021: AANAT, MTNR1A, MTNR1B inactivated; ASMT heterozygous pseudogene -> UNKNOWN not 0"),
+    # 2026-10-19: rows below previously quoted fragments ('all pangolins',
+    # 'all xenarthrans', 'complete disruption ... in two dermopteran') that
+    # are NOT present in any retrievable text. Each now quotes the sentence
+    # confirmed VERBATIM against the retrieved abstract of doi:10.12688/
+    # openreseurope.13795.2. Values unchanged; only the provenance text.
     ("Chinese Pangolin (Manis)", "Pholidota", "Mammals", 0, 0, 0, 0,
-     "Emerling 2021: 'all pangolins' disrupted, shared inactivating mutations"),
+     "Emerling 2021, doi:10.12688/openreseurope.13795.2 Abstract: 'all four "
+     "genes have been repeatedly inactivated in the pineal-less xenarthrans, "
+     "pangolins, sirenians, and whales'"),
     ("Two-Toed Sloth (Choloepus)", "Xenarthra", "Mammals", 0, 0, 0, 0,
-     "Emerling 2021: 'all xenarthrans' disrupted"),
+     "Emerling 2021, doi:10.12688/openreseurope.13795.2 Abstract: 'all four "
+     "genes have been repeatedly inactivated in the pineal-less xenarthrans, "
+     "pangolins, sirenians, and whales'"),
     ("Nine-Banded Armadillo (Dasypus)", "Xenarthra", "Mammals", 0, 0, 0, 0,
-     "Emerling 2021: 'all xenarthrans' disrupted"),
+     "Emerling 2021, doi:10.12688/openreseurope.13795.2 Abstract: 'all four "
+     "genes have been repeatedly inactivated in the pineal-less xenarthrans, "
+     "pangolins, sirenians, and whales'"),
     ("Sunda Colugo (Galeopterus)", "Dermoptera", "Mammals", 0, 0, 0, 0,
-     "Emerling 2021: 'complete disruption ... in two dermopteran (colugo) species'"),
+     "Emerling 2021, doi:10.12688/openreseurope.13795.2 Abstract: 'colugos "
+     "have lost these genes'"),
 ]
 
 with open(RAW / "vertebrate_pineal_phylogeny.csv", "w", newline="") as f:

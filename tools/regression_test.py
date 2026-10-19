@@ -69,18 +69,39 @@ def main():
     print("PASS: shipped CSV is clean "
           "(all rows sourced, all flags binary-or-blank, derived column agrees)")
 
-    # (a) strip the source from one row -> must be caught. The source text is
-    # the LAST field, so match on the row prefix rather than the full string.
-    lines = clean.splitlines()
-    mutated = list(lines)
-    for i, ln in enumerate(mutated):
-        if ln.startswith("American Alligator"):
-            mutated[i] = ",".join(ln.split(",")[:-1])  # drop the source field
-            break
-    no_src = "\n".join(mutated) + ("\n" if clean.endswith("\n") else "")
-    if no_src == clean:
-        print("SKIP: alligator row not found; corruption not applied")
+    # (a) strip the source from one row -> must be caught.
+    #
+    # 2026-10-19 DEFECT FIX. This previously did:
+    #     mutated[i] = ",".join(ln.split(",")[:-1])   # drop the source field
+    # That assumes the source field contains no comma. As soon as a source
+    # string was correctly CSV-quoted and contained a comma (it now does --
+    # 'Emerling 2021 Open Res Europe 1:75, doi:...'), the naive split dropped
+    # only the final comma-segment, leaving a row whose source was still
+    # NON-EMPTY, so the validator correctly reported nothing and this test
+    # failed with "unsourced row not caught".
+    #
+    # The bug was in the harness, not the validator. This is the same defect
+    # class already fixed in tools/test_provenance_adversarial.py; it was
+    # never fixed here, and it stayed latent only because no source field
+    # contained a comma until now.
+    #
+    # Fix: round-trip through the csv module for both read and write.
+    rows = list(csv.DictReader(io.StringIO(clean)))
+    fields = list(rows[0].keys())
+    hit = 0
+    for r in rows:
+        if (r.get("taxon") or "").strip() == "American Alligator (Alligator)":
+            r["source"] = ""
+            hit += 1
+    if hit != 1:
+        print(f"SKIP: alligator row matched {hit} times; corruption not applied")
     else:
+        buf = io.StringIO()
+        w = csv.DictWriter(buf, fieldnames=fields, lineterminator="\n")
+        w.writeheader()
+        w.writerows(rows)
+        no_src = buf.getvalue()
+
         hits = scan_phylo(no_src)
         if not any("no source" in h for h in hits):
             print(f"FAIL: unsourced row not caught ({hits})")
